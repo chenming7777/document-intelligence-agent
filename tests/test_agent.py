@@ -7,7 +7,7 @@ from tests.conftest import SAMPLES
 
 
 def provider(documents):
-    extractor = Mock(provider="openai", model="test-model")
+    extractor = Mock(provider="gemini", model="test-model")
     extractor.run.side_effect = documents
     return extractor
 

@@ -60,7 +60,7 @@ def test_missing_upload_and_sample_allowlist(settings):
 
 
 def test_live_mode_missing_key(settings, invoice_bytes):
-    settings.provider = "openai"
+    settings.provider = "gemini"
     with TestClient(create_app(settings)) as client:
         assert client.get("/health").json()["configured"] is False
         response = client.post("/api/analyze", files={"file": ("a.pdf", invoice_bytes)})

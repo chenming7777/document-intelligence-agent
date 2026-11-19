@@ -7,9 +7,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", populate_by_name=True)
 
-    provider: Literal["demo", "openai"] = Field("demo", alias="DOCINTEL_PROVIDER")
-    openai_api_key: SecretStr = SecretStr("")
-    openai_model: str = "gpt-4.1-mini"
+    provider: Literal["demo", "gemini"] = Field("demo", alias="DOCINTEL_PROVIDER")
+    gemini_api_key: SecretStr = SecretStr("")
+    gemini_model: str = "gemini-3.8-flash"
     max_upload_mb: int = Field(10, ge=1, le=50)
     max_pages: int = Field(10, ge=1, le=50)
     max_text_chars: int = Field(60000, ge=100, le=200000)

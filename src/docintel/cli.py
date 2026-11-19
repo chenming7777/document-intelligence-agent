@@ -12,7 +12,7 @@ from docintel.errors import DocumentError
 def main() -> int:
     parser = argparse.ArgumentParser(description="Extract and validate an invoice or receipt.")
     parser.add_argument("document", type=Path)
-    parser.add_argument("--provider", choices=["demo", "openai"])
+    parser.add_argument("--provider", choices=["demo", "gemini"])
     parser.add_argument("--output", type=Path, help="Write report JSON to this path.")
     args = parser.parse_args()
     settings = Settings(**({"provider": args.provider} if args.provider else {}))

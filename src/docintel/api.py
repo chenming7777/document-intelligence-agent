@@ -126,7 +126,7 @@ def create_app(settings: Settings | None = None, agent: DocumentAgent | None = N
 
     @app.get("/health")
     async def health():
-        ready = settings.provider == "demo" or bool(settings.openai_api_key.get_secret_value())
+        ready = settings.provider == "demo" or bool(settings.gemini_api_key.get_secret_value())
         return {
             "status": "ok",
             "provider": settings.provider,

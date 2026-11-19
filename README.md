@@ -2,7 +2,7 @@
 
 A single-repository implementation of the Appfusion AI/ML take-home assessment. Upload a PDF or image, extract an invoice or receipt into a typed schema, validate the values, and generate a short report.
 
-Includes **DocLens**, a responsive upload and review interface, a FastAPI API, and a CLI. The offline demo runs without an API key. Live extraction uses OpenAI Structured Outputs.
+Includes **DocLens**, a responsive upload and review interface, a FastAPI API, and a CLI. The offline demo runs without an API key. Live extraction uses Google Gemini structured JSON output.
 
 ![DocLens document studio](docs/preview.png)
 
@@ -22,21 +22,23 @@ On macOS/Linux, activate with `source .venv/bin/activate` and copy configuration
 
 Open **http://127.0.0.1:8000**. Click **Invoice**, **Receipt**, or **Mismatch**. These samples go through the real PDF reader, a clearly labeled deterministic demo parser, the validator, and the summarizer. The mismatch sample preserves the incorrect printed total and returns `needs_review`.
 
-The `demo` provider only understands the bundled labeled sample layout. It is **not an LLM** and does not claim to extract arbitrary documents. Switch to `openai` for the assessment's LLM workflow.
+The `demo` provider only understands the bundled labeled sample layout. It is **not an LLM** and does not claim to extract arbitrary documents. Switch to `gemini` for the assessment's LLM workflow.
 
 ## Live LLM extraction
 
 Set these values in your local `.env` (which Git ignores):
 
 ```dotenv
-DOCINTEL_PROVIDER=openai
-OPENAI_API_KEY=your-key-here
-OPENAI_MODEL=gpt-4.1-mini
+DOCINTEL_PROVIDER=gemini
+GEMINI_API_KEY=your-key-here
+GEMINI_MODEL=gemini-3.8-flash
 ```
 
-Restart the server. `OPENAI_MODEL` can be another model supporting strict Structured Outputs. The SDK calls `responses.parse(..., text_format=FinancialDocument, store=False)`. It validates the parsed response and handles refusals, incomplete output, timeouts, and provider errors. See the [official Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
+Create a Gemini API key in [Google AI Studio](https://aistudio.google.com/api-keys), add it to `.env`, and restart the server. `GEMINI_MODEL` can be another Gemini model supporting structured output. The Google Gen AI SDK calls `models.generate_content` with `response_mime_type="application/json"` and the document's JSON schema, then validates the result using Pydantic. It handles blocked prompts, incomplete output, malformed JSON, timeouts, and provider errors. See the [official SDK structured-output documentation](https://googleapis.github.io/python-genai/#json-response-schema).
 
-Text extraction and validation run locally. In live mode, **extracted page text is sent to OpenAI**. `store=False` disables response storage for this call; it does not override provider retention policies. Use synthetic documents for assessment demonstrations.
+Text extraction and validation run locally. In live mode, **extracted page text is sent to Google Gemini** and is subject to Google's applicable data-use terms. The key is read server-side and is never sent to the browser. Use synthetic documents for assessment demonstrations.
+
+The SDK is constrained to the 2.33 release series to retain Python 3.10 compatibility. Live extraction requires a Gemini key; keys from other providers are not interchangeable. The offline demo remains available with `DOCINTEL_PROVIDER=demo`.
 
 ## Scans and images
 
@@ -127,7 +129,7 @@ The model handles semantic extraction; Python handles arithmetic, business check
 - Limits: 10 MB, 10 pages, 60,000 extracted characters, bounded rendered image pixels; configurable in `.env`.
 - Multipart bodies are bounded before parsing, even without `Content-Length`. Extensions and decoded content are checked.
 - Two concurrent document processors per process, with fast rejection when busy. Blocking OCR/SDK work runs outside the event loop; PDFium rendering is serialized for thread safety.
-- Provider timeout and two transient transport retries; at most one semantic recheck (up to two extraction calls, each potentially retried by the SDK). OCR has a per-page timeout.
+- Provider timeout and at most two SDK retries; at most one semantic recheck (up to two extraction calls, each potentially retried by the SDK). OCR has a per-page timeout.
 - Request IDs and tool durations in logs; no document text, filenames, API keys, or financial values are deliberately logged.
 - No durable upload storage or document database. Multipart parsing may use temporary spooled files that are closed after the request. Reports remain in the browser until cleared or downloaded.
 - Document text is untrusted input. The prompt separates instructions from evidence; UI rendering uses `textContent` and restrictive resource policies.
@@ -149,10 +151,10 @@ Verified during implementation:
 
 | Environment | Result |
 | --- | --- |
-| Windows, Python 3.10 | 63 passed; 2 real OCR tests skipped because Tesseract is absent |
-| Docker/Linux, Python 3.12 + Tesseract | All 65 tests passed, including real image and scanned-PDF OCR; 95% backend coverage |
+| Windows, Python 3.10 | 70 passed; 2 real OCR tests skipped because Tesseract is absent |
+| Docker/Linux, Python 3.12 + Tesseract | All 72 tests passed, including real image and scanned-PDF OCR; 96% backend coverage |
 | Browser, desktop and 390px mobile | Samples, validation errors, JSON/source views, download, and invalid-file handling passed; no JavaScript errors or horizontal page overflow |
-| OpenAI SDK | Strict-schema request and parsed-response round trip tested using a mock HTTP transport; paid live model extraction has not been exercised |
+| Gemini SDK | JSON-schema request and parsed-response round trip tested using a mock HTTP transport; paid live model extraction has not been exercised |
 
 ## Repository map
 
@@ -161,7 +163,7 @@ src/docintel/
   api.py             FastAPI routes, limits, request IDs
   agent.py           Bounded workflow, trace, summary
   reader.py          PDF text and OCR tools
-  extractors.py      OpenAI and explicit demo implementations
+  extractors.py      Gemini and explicit demo implementations
   validation.py      Deterministic financial checks
   models.py          Shared Pydantic schemas
   config.py          Environment settings

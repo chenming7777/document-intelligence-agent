@@ -11,7 +11,7 @@ SAMPLES = Path(__file__).resolve().parents[1] / "src" / "docintel" / "samples"
 
 @pytest.fixture
 def settings():
-    return Settings(_env_file=None, provider="demo", openai_api_key="")
+    return Settings(_env_file=None, provider="demo", gemini_api_key="")
 
 
 @pytest.fixture

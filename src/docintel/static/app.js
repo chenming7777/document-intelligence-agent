@@ -233,8 +233,8 @@ fetch("/health").then((response) => response.json()).then((health) => {
   maxUploadBytes = health.max_upload_mb * 1024 * 1024;
   $("file-hint").textContent =
     `PDF, PNG or JPG · up to ${health.max_upload_mb} MB · ${health.max_pages} pages`;
-  if (health.provider === "openai") $("privacy").textContent =
-    "Extracted text is sent to OpenAI for analysis. Uploaded documents are not retained by this application.";
+  if (health.provider === "gemini") $("privacy").textContent =
+    "Extracted text is sent to Google Gemini for analysis. Uploaded documents are not retained by this application.";
 }).catch(() => {
   $("mode").textContent = "Server unavailable";
 });
