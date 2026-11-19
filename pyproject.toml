@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "document-intelligence-agent"
+version = "0.1.0"
+description = "A bounded, tool-using agent for extracting and validating invoices and receipts."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.30,<1",
+  "python-multipart>=0.0.20,<1",
+  "pydantic>=2.10,<3",
+  "pydantic-settings>=2.7,<3",
+  "openai>=3.55,<4",
+  "pypdf>=5,<7",
+  "pypdfium2>=4.30,<6",
+  "Pillow>=11,<13",
+  "pytesseract>=0.3.13,<1",
+  "pycountry>=24.6,<27",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "pytest-cov>=6,<8", "httpx>=0.28,<1", "ruff>=0.11,<1", "reportlab>=4.2,<5"]
+
+[project.scripts]
+docintel = "docintel.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+docintel = ["static/*", "samples/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

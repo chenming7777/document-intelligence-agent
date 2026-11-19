@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <meta content="#173f35" name="theme-color"/>
+    <title>
+      DocLens · Document intelligence
+    </title>
+    <link href="/assets/styles.css" rel="stylesheet"/>
+    <script defer="" src="/assets/app.js">
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">
+      Skip to content
+    </a>
+    <aside class="sidebar">
+      <a aria-label="DocLens home" class="brand" href="/">
+        <span class="brand-icon">
+          D↗
+        </span>
+        DocLens
+        <span class="orange">
+          .
+        </span>
+      </a>
+      <p class="sidebar-label">
+        WORKSPACE
+      </p>
+      <a class="nav-link active" href="#main">
+        ▤   Document studio
+      </a>
+      <a class="nav-link" href="/docs" rel="noopener" target="_blank">
+        ⌘   API reference ↗
+      </a>
+      <div class="sidebar-note">
+        <span class="dot">
+        </span>
+        Built for a closer look
+        <p>
+          Source text. Structured data.
+          <br/>
+          Checks you can inspect.
+        </p>
+      </div>
+      <div class="sidebar-footer">
+        DOCUMENT INTELLIGENCE AGENT
+        <br/>
+        AI / ML assessment · v0.1
+      </div>
+    </aside>
+    <main id="main">
+      <header class="topbar">
+        <span>
+          Workspace
+          <span class="slash">
+            /
+          </span>
+          Document studio
+        </span>
+        <span class="badge" id="mode">
+          Connecting…
+        </span>
+      </header>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">
+            LESS REKEYING. MORE CLARITY.
+          </p>
+          <h1>
+            Every document,
+            <br/>
+            a clearer picture.
+          </h1>
+          <p class="lead">
+            Turn invoices and receipts into structured data,
+            <br/>
+            checked values, and a report you can act on.
+          </p>
+        </div>
+        <div aria-hidden="true" class="intro-mark">
+          <span>
+            01
+          </span>
+          <div>
+            READ
+            <br/>
+            REASON
+            <br/>
+            REVIEW ↗
+          </div>
+        </div>
+      </section>
+      <div class="workspace-grid">
+        <section aria-labelledby="upload-title" class="card">
+          <div class="section-heading">
+            <span class="step-number">
+              01
+            </span>
+            <div>
+              <h2 id="upload-title">
+                Start with a document
+              </h2>
+              <p>
+                A little less paperwork starts here.
+              </p>
+            </div>
+          </div>
+          <form id="upload-form">
+            <label class="drop-zone" for="file" id="drop-zone">
+              <input accept=".pdf,.png,.jpg,.jpeg" aria-describedby="file-hint" id="file" type="file"/>
+              <span aria-hidden="true" class="upload-icon">
+                ↥
+              </span>
+              <strong id="file-label">
+                Drop your document here
+              </strong>
+              <span>
+                or
+                <u>
+                  browse files
+                </u>
+              </span>
+              <small id="file-hint">
+                PDF, PNG or JPG · up to 10 MB
+              </small>
+            </label>
+            <button class="primary" disabled="" id="analyze" type="submit">
+              Analyze document
+              <span aria-hidden="true">
+                ↗
+              </span>
+            </button>
+          </form>
+          <div class="sample-heading">
+            <span>
+              JUST EXPLORING?
+            </span>
+            <span>
+              Try a sample
+            </span>
+          </div>
+          <div class="samples">
+            <button data-sample="invoice" type="button">
+              ▤ Invoice
+            </button>
+            <button data-sample="receipt" type="button">
+              ▥ Receipt
+            </button>
+            <button data-sample="inconsistent" type="button">
+              △ Mismatch
+            </button>
+          </div>
+          <p class="privacy" id="privacy">
+            Offline demo uses the included sample layouts. Uploaded documents are not retained by the application.
+          </p>
+          <p class="error" hidden="" id="error" role="alert">
+          </p>
+        </section>
+        <section aria-labelledby="workflow-title" class="card workflow">
+          <div class="section-heading">
+            <span class="step-number">
+              02
+            </span>
+            <div>
+              <h2 id="workflow-title">
+                A workflow you can follow
+              </h2>
+              <p>
+                Four steps. One inspectable report.
+              </p>
+            </div>
+          </div>
+          <ol class="steps">
+            <li>
+              <span class="step-icon">
+                1
+              </span>
+              <div>
+                <strong>
+                  Read the source
+                </strong>
+                <p>
+                  Extract PDF text or run OCR on scans.
+                </p>
+              </div>
+              <span class="step-status" data-step="extract_text">
+                Ready
+              </span>
+            </li>
+            <li>
+              <span class="step-icon">
+                2
+              </span>
+              <div>
+                <strong>
+                  Make it structured
+                </strong>
+                <p>
+                  Map values to a consistent schema.
+                </p>
+              </div>
+              <span class="step-status" data-step="extract_structured">
+                Ready
+              </span>
+            </li>
+            <li>
+              <span class="step-icon">
+                3
+              </span>
+              <div>
+                <strong>
+                  Check the details
+                </strong>
+                <p>
+                  Reconcile amounts, dates, and evidence.
+                </p>
+              </div>
+              <span class="step-status" data-step="validate">
+                Ready
+              </span>
+            </li>
+            <li>
+              <span class="step-icon">
+                4
+              </span>
+              <div>
+                <strong>
+                  Bring it together
+                </strong>
+                <p>
+                  A short summary and downloadable JSON.
+                </p>
+              </div>
+              <span class="step-status" data-step="summarize">
+                Ready
+              </span>
+            </li>
+          </ol>
+          <div class="workflow-caption">
+            <span class="dot">
+            </span>
+            <span aria-live="polite" id="progress" role="status">
+              Waiting for your first document.
+            </span>
+          </div>
+        </section>
+      </div>
+      <section class="empty-state" id="empty-state">
+        <span aria-hidden="true">
+          ⌁
+        </span>
+        <div>
+          <h2>
+            Your next clear picture starts above.
+          </h2>
+          <p>
+            Upload a document or choose a sample to see the extracted data and validation report.
+          </p>
+        </div>
+      </section>
+      <section aria-labelledby="results-title" class="results" hidden="" id="results">
+        <div class="results-heading">
+          <div>
+            <p class="eyebrow">
+              THE DOCUMENT, DECODED
+            </p>
+            <h2 id="results-title" tabindex="-1">
+              Analysis report
+            </h2>
+          </div>
+          <button class="secondary" id="download" type="button">
+            Download JSON ↓
+          </button>
+        </div>
+        <div class="report-banner">
+          <span class="badge" id="validation-status">
+          </span>
+          <span id="report-provider">
+          </span>
+          <p id="summary">
+          </p>
+        </div>
+        <div aria-label="Report views" class="tabs" role="tablist">
+          <button aria-controls="panel-details" aria-selected="true" data-tab="details" id="tab-details" role="tab" type="button">
+            Overview
+          </button>
+          <button aria-controls="panel-json" aria-selected="false" data-tab="json" id="tab-json" role="tab" tabindex="-1" type="button">
+            Structured JSON
+          </button>
+          <button aria-controls="panel-source" aria-selected="false" data-tab="source" id="tab-source" role="tab" tabindex="-1" type="button">
+            Source & trace
+          </button>
+        </div>
+        <div aria-labelledby="tab-details" id="panel-details" role="tabpanel">
+          <dl class="fields" id="fields">
+          </dl>
+          <div class="table-wrap">
+            <table>
+              <caption>
+                Extracted line items
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">
+                    Description
+                  </th>
+                  <th scope="col">
+                    Quantity
+                  </th>
+                  <th scope="col">
+                    Unit price
+                  </th>
+                  <th scope="col">
+                    Amount
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="items">
+              </tbody>
+            </table>
+          </div>
+          <h3>
+            Validation findings
+          </h3>
+          <ul class="issues" id="issues">
+          </ul>
+        </div>
+        <div aria-labelledby="tab-json" hidden="" id="panel-json" role="tabpanel">
+          <pre id="json"></pre>
+        </div>
+        <div aria-labelledby="tab-source" hidden="" id="panel-source" role="tabpanel">
+          <h3>
+            Tool execution trace
+          </h3>
+          <ol id="trace">
+          </ol>
+          <h3>
+            Source pages
+          </h3>
+          <div id="source-pages">
+          </div>
+          <h3>
+            Extraction notes
+          </h3>
+          <ul id="notes">
+          </ul>
+          <p id="request-id">
+          </p>
+        </div>
+      </section>
+      <footer class="main-footer">
+        <span>
+          From unstructured to understood.
+        </span>
+        <span>
+          Review the source before relying on extracted values.
+        </span>
+      </footer>
+    </main>
+  </body>
+</html>
