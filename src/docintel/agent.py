@@ -3,40 +3,19 @@ import logging
 import time
 import uuid
 from collections.abc import Callable
-from pathlib import PurePosixPath
 from typing import TypeVar
 
 from docintel.config import Settings
 from docintel.errors import DocumentError
 from docintel.extractors import StructuredExtractionTool, make_extractor
-from docintel.models import DocumentReport, FinancialDocument, TraceEvent, ValidationReport
+from docintel.models import DocumentReport, TraceEvent
 from docintel.reader import TextExtractionTool
+from docintel.storage import safe_filename
+from docintel.summaries import SummaryTool, make_summarizer
 from docintel.validation import ValidationTool
 
 logger = logging.getLogger(__name__)
 T = TypeVar("T")
-
-
-def summarize(document: FinancialDocument, validation: ValidationReport) -> str:
-    vendor = document.vendor or "an unidentified vendor"
-    amount = str(document.total_amount) if document.total_amount is not None else "unknown amount"
-    currency = document.currency or "unspecified currency"
-    identifier = f" {document.invoice_number}" if document.invoice_number else ""
-    date_text = f", dated {document.invoice_date}" if document.invoice_date else ""
-    summary = (
-        f"{document.document_type.capitalize()}{identifier} from {vendor}{date_text}: "
-        f"{currency} {amount}, with {len(document.line_items)} line item(s)."
-    )
-    if document.due_date:
-        summary += f" Due {document.due_date}."
-    if validation.status == "passed":
-        summary += " All configured validation checks passed."
-    else:
-        errors = sum(i.severity == "error" for i in validation.issues)
-        summary += (
-            f" Review required: {errors} error(s) and {len(validation.issues) - errors} warning(s)."
-        )
-    return summary
 
 
 class DocumentAgent:
@@ -47,18 +26,34 @@ class DocumentAgent:
         settings: Settings,
         extractor: StructuredExtractionTool | None = None,
         reader: TextExtractionTool | None = None,
+        summarizer: SummaryTool | None = None,
     ):
         self.settings = settings
         self.extractor = extractor or make_extractor(settings)
+        try:
+            self.summarizer = summarizer or make_summarizer(settings)
+        except Exception:
+            self.extractor.close()
+            raise
         self.reader = reader or TextExtractionTool(settings)
         self.validator = ValidationTool()
 
     def close(self) -> None:
-        self.extractor.close()
+        try:
+            self.extractor.close()
+        finally:
+            self.summarizer.close()
 
-    def run(self, content: bytes, filename: str, request_id: str | None = None) -> DocumentReport:
+    def run(
+        self,
+        content: bytes,
+        filename: str,
+        request_id: str | None = None,
+        document_id: str | None = None,
+    ) -> DocumentReport:
         request_id = request_id or str(uuid.uuid4())
-        filename = PurePosixPath(filename.replace("\\", "/")).name[:200] or "document"
+        filename = safe_filename(filename)
+        document_id = document_id or "doc_" + uuid.uuid4().hex
         trace = []
 
         def call(tool: str, attempt: int, operation: Callable[[], T]) -> T:
@@ -79,7 +74,9 @@ class DocumentAgent:
                 )
                 # No raw text, file names, provider exceptions, or financial values in logs.
                 logger.info(
-                    "tool_run request_id=%s tool=%s attempt=%d duration_ms=%d outcome=%s",
+                    "tool_run document_id=%s request_id=%s tool=%s "
+                    "attempt=%d duration_ms=%d outcome=%s",
+                    document_id,
                     request_id,
                     tool,
                     attempt,
@@ -116,8 +113,9 @@ class DocumentAgent:
                     )
             except DocumentError:
                 notices.append("Extraction recheck failed; initial extraction retained for review.")
-        summary = call("summarize", 1, lambda: summarize(document, validation))
+        summary = call("summarize", 1, lambda: self.summarizer.run(document, validation))
         return DocumentReport(
+            document_id=document_id,
             request_id=request_id,
             filename=filename,
             sha256=hashlib.sha256(content).hexdigest(),
@@ -126,6 +124,7 @@ class DocumentAgent:
             document=document,
             validation=validation,
             summary=summary,
+            summary_method=self.summarizer.method,
             pages=source.pages,
             warnings=notices,
             trace=trace,

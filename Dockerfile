@@ -4,7 +4,9 @@ WORKDIR /app
 RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
     && apt-get update && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-eng \
     && rm -rf /var/lib/apt/lists/* \
-    && useradd --create-home --uid 10001 appuser
+    && useradd --create-home --uid 10001 appuser \
+    && mkdir /data && chown appuser:appuser /data
+ENV DOCINTEL_DATA_DIR=/data
 COPY requirements.lock ./
 RUN pip install --no-cache-dir -r requirements.lock
 COPY pyproject.toml README.md ./

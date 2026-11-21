@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Literal
 
 from pydantic import Field, SecretStr
@@ -10,6 +11,7 @@ class Settings(BaseSettings):
     provider: Literal["demo", "gemini"] = Field("demo", alias="DOCINTEL_PROVIDER")
     gemini_api_key: SecretStr = SecretStr("")
     gemini_model: str = "gemini-3.8-flash"
+    data_dir: Path = Field(Path("data"), alias="DOCINTEL_DATA_DIR")
     max_upload_mb: int = Field(10, ge=1, le=50)
     max_pages: int = Field(10, ge=1, le=50)
     max_text_chars: int = Field(60000, ge=100, le=200000)

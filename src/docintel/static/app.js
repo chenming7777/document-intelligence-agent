@@ -54,7 +54,7 @@ function renderReport(report) {
   $("validation-status").textContent = passed ? "Checks passed" : "Needs review";
   $("validation-status").className = "badge" + (passed ? "" : " warning");
   $("report-provider").textContent = report.provider === "demo" ? "Offline demo · no LLM called" :
-    "Live extraction · " + report.model;
+    "Gemini extraction + AI summary · " + report.model;
   $("summary").textContent = report.summary;
   $("fields").replaceChildren();
   const fields = {
@@ -107,7 +107,8 @@ function renderReport(report) {
     .text)));
   $("notes").replaceChildren();
   [...doc.notes, ...report.warnings].forEach((note) => $("notes").append(element("li", note)));
-  $("request-id").textContent = `Request ${report.request_id} · SHA-256 ${report.sha256}`;
+  $("request-id").textContent = `Document ${report.document_id} · Request ${report.request_id} · SHA-256 ${report.sha256}`;
+  $("source-download").href = `/documents/${report.document_id}/source`;
   document.querySelectorAll("[data-step]").forEach((node) => {
     node.textContent = report.trace.some((e) => e.tool === node.dataset.step) ? "Done" : "—";
     node.className = "step-status complete";
@@ -122,6 +123,22 @@ function renderReport(report) {
     behavior: "smooth",
     block: "start"
   });
+}
+async function loadDocument(documentId) {
+  const deadline = Date.now() + 20 * 60 * 1000;
+  while (Date.now() < deadline) {
+    const response = await fetch(`/documents/${documentId}`);
+    const record = await response.json();
+    if (!response.ok) throw new Error(record.error?.message || "Could not load this document.");
+    if (record.status === "failed") throw new Error(record.error?.message || "Processing failed.");
+    if (record.status === "completed") {
+      renderReport(record.report);
+      return;
+    }
+    $("progress").textContent = `Document saved. OCR and analysis are in progress. You can reopen this page to check the result.`;
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+  throw new Error("Processing is taking longer than expected. Reopen this page to check its status.");
 }
 async function analyze(file) {
   if (busy || !file) return;
@@ -147,14 +164,15 @@ async function analyze(file) {
   try {
     const form = new FormData();
     form.append("file", file);
-    const response = await fetch("/api/analyze", {
+    const response = await fetch("/documents", {
       method: "POST",
       body: form
     });
-    const report = await response.json();
-    if (!response.ok) throw new Error(report.error?.message ||
+    const receipt = await response.json();
+    if (!response.ok) throw new Error(receipt.error?.message ||
       "The document could not be processed.");
-    renderReport(report);
+    history.replaceState(null, "", `/?document=${receipt.document_id}`);
+    await loadDocument(receipt.document_id);
   } catch (error) {
     showError(error.message || "Connection failed. Check that the server is running.");
     $("progress").textContent =
@@ -220,7 +238,7 @@ $("download").addEventListener("click", () => {
   }));
   const a = element("a");
   a.href = url;
-  a.download = `report-${currentReport.request_id}.json`;
+  a.download = `report-${currentReport.document_id}.json`;
   document.body.append(a);
   a.click();
   a.remove();
@@ -234,7 +252,17 @@ fetch("/health").then((response) => response.json()).then((health) => {
   $("file-hint").textContent =
     `PDF, PNG or JPG · up to ${health.max_upload_mb} MB · ${health.max_pages} pages`;
   if (health.provider === "gemini") $("privacy").textContent =
-    "Extracted text is sent to Google Gemini for analysis. Uploaded documents are not retained by this application.";
+    "Extracted text and structured data are sent to Google Gemini. Documents and reports are saved on this server; bookmark the report page to reopen it.";
 }).catch(() => {
   $("mode").textContent = "Server unavailable";
 });
+
+const savedDocument = new URLSearchParams(location.search).get("document");
+if (savedDocument && /^doc_[0-9a-f]{32}$/.test(savedDocument)) {
+  setBusy(true);
+  $("progress").textContent = "Loading your saved document…";
+  loadDocument(savedDocument).catch((error) => {
+    showError(error.message || "Could not reconnect to the server. Reload to try again.");
+    $("progress").textContent = "The saved document could not be loaded.";
+  }).finally(() => setBusy(false));
+}

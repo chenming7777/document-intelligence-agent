@@ -74,6 +74,7 @@ class TraceEvent(StrictModel):
 
 
 class DocumentReport(StrictModel):
+    document_id: str
     request_id: str
     filename: str
     sha256: str
@@ -82,6 +83,30 @@ class DocumentReport(StrictModel):
     document: FinancialDocument
     validation: ValidationReport
     summary: str
+    summary_method: Literal["demo", "gemini"]
     pages: list[TextPage]
     warnings: list[str]
     trace: list[TraceEvent]
+
+
+class ProcessingError(StrictModel):
+    code: str
+    message: str
+
+
+class DocumentRecord(StrictModel):
+    document_id: str
+    request_id: str
+    filename: str
+    sha256: str
+    status: Literal["processing", "completed", "failed"]
+    created_at: str
+    updated_at: str
+    report: DocumentReport | None = None
+    error: ProcessingError | None = None
+
+
+class UploadReceipt(StrictModel):
+    document_id: str
+    status: Literal["processing"] = "processing"
+    status_url: str

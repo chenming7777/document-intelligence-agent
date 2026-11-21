@@ -20,6 +20,26 @@ _PDFIUM_LOCK = threading.Lock()
 _EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg"}
 
 
+def validate_upload(content: bytes, filename: str, settings: Settings) -> str:
+    """Cheap checks before accepting an upload; full decoding happens in the worker."""
+    if not content:
+        raise DocumentError("empty_file", "The uploaded file is empty.")
+    if len(content) > settings.max_upload_bytes:
+        raise DocumentError("file_too_large", "The document exceeds the upload limit.", 413)
+    extension = Path(filename).suffix.lower()
+    signatures = {
+        ".pdf": b"%PDF-",
+        ".png": b"\x89PNG\r\n\x1a\n",
+        ".jpg": b"\xff\xd8",
+        ".jpeg": b"\xff\xd8",
+    }
+    if extension not in _EXTENSIONS:
+        raise DocumentError("unsupported_file", "Upload a PDF, PNG, or JPEG document.", 415)
+    if not content.startswith(signatures[extension]):
+        raise DocumentError("invalid_file", "The file content does not match its extension.")
+    return extension
+
+
 class TextExtractionTool:
     def __init__(self, settings: Settings):
         self.settings = settings

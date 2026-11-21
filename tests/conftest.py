@@ -10,8 +10,8 @@ SAMPLES = Path(__file__).resolve().parents[1] / "src" / "docintel" / "samples"
 
 
 @pytest.fixture
-def settings():
-    return Settings(_env_file=None, provider="demo", gemini_api_key="")
+def settings(tmp_path):
+    return Settings(_env_file=None, provider="demo", gemini_api_key="", data_dir=tmp_path / "data")
 
 
 @pytest.fixture
