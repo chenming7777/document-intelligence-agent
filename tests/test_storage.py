@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
 
 import pytest
 
@@ -17,10 +18,18 @@ def test_original_is_atomic_and_survives_reopening(settings, invoice_bytes):
     assert record.request_id == "request-1"
 
 
-def test_concurrent_uploads_have_distinct_ids(settings, invoice_bytes):
+@pytest.mark.parametrize("shared_store", [True, False])
+def test_concurrent_uploads_have_distinct_ids(settings, invoice_bytes, shared_store):
     store = DocumentStore(settings.data_dir)
+    barrier = Barrier(4)
+
+    def upload(i):
+        writer = store if shared_store else DocumentStore(settings.data_dir)
+        barrier.wait(timeout=10)
+        return writer.create(invoice_bytes, "invoice.pdf", str(i))
+
     with ThreadPoolExecutor(max_workers=4) as pool:
-        ids = list(pool.map(lambda i: store.create(invoice_bytes, "invoice.pdf", str(i)), range(8)))
+        ids = list(pool.map(upload, range(8)))
     assert len(set(ids)) == 8
     assert all(store.original(document_id) == invoice_bytes for document_id in ids)
 

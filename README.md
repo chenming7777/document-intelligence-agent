@@ -187,7 +187,7 @@ Verified on 2026-11-21:
 
 | Check | Result |
 | --- | --- |
-| Docker / Python 3.12 / Tesseract | 92 tests passed, 97% backend coverage; no network or API keys used |
+| Docker / Python 3.12 / Tesseract | 93 tests passed, 97% backend coverage; no network or API keys used |
 | Lint and formatting | Ruff checks passed |
 | Browser | Upload, status polling, saved-report reload, original/JSON downloads, stored errors, and 390px mobile layout passed |
 | Live Gemini | Scanned invoice: real OCR, structured extraction, passed validation, and AI summary. Mismatch invoice: printed MYR 3255 retained, `needs_review`, and AI summary explaining the discrepancy |

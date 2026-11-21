@@ -42,7 +42,9 @@ SQLite stores both upload bytes and report JSON in transactions. This avoids sep
 file/database writes getting out of sync and needs no external database service.
 Uploads are limited to 10 MB by default, which makes this reasonable for a local
 assessment application. Each connection is short-lived; WAL permits status readers
-alongside writes. Docker stores the database on a named volume owned by the non-root
+alongside writes. First-use schema/WAL initialization is serialized across threads
+to prevent competing connections from racing to change the journal mode. Docker
+stores the database on a named volume owned by the non-root
 application user, while the rest of the container filesystem is read-only.
 
 ## Prompt design

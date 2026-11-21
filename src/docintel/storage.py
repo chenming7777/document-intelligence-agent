@@ -3,6 +3,7 @@
 import hashlib
 import re
 import sqlite3
+import threading
 import uuid
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -10,6 +11,10 @@ from pathlib import Path, PurePosixPath
 
 from docintel.errors import DocumentError
 from docintel.models import DocumentRecord, DocumentReport, ProcessingError
+
+# SQLite's initial switch to WAL can return SQLITE_BUSY immediately when two
+# connections attempt it together, even with a connection timeout configured.
+_INITIALIZE_LOCK = threading.Lock()
 
 
 def safe_filename(filename: str) -> str:
@@ -24,6 +29,7 @@ class DocumentStore:
     def __init__(self, directory: Path):
         self.directory = directory
         self.path = directory / "documents.sqlite3"
+        self._initialized = False
 
     @contextmanager
     def connect(self):
@@ -32,15 +38,20 @@ class DocumentStore:
             self.directory.mkdir(parents=True, exist_ok=True)
             connection = sqlite3.connect(self.path, timeout=10)
             connection.row_factory = sqlite3.Row
-            connection.execute("PRAGMA journal_mode=WAL")
-            connection.execute("""
-                CREATE TABLE IF NOT EXISTS documents (
-                    document_id TEXT PRIMARY KEY, request_id TEXT NOT NULL,
-                    filename TEXT NOT NULL, sha256 TEXT NOT NULL, content BLOB NOT NULL,
-                    status TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
-                    report TEXT, error TEXT
-                )
-            """)
+            with _INITIALIZE_LOCK:
+                if not self._initialized:
+                    connection.execute("PRAGMA journal_mode=WAL")
+                    connection.execute("""
+                        CREATE TABLE IF NOT EXISTS documents (
+                            document_id TEXT PRIMARY KEY, request_id TEXT NOT NULL,
+                            filename TEXT NOT NULL, sha256 TEXT NOT NULL, content BLOB NOT NULL,
+                            status TEXT NOT NULL, created_at TEXT NOT NULL,
+                            updated_at TEXT NOT NULL,
+                            report TEXT, error TEXT
+                        )
+                    """)
+                    connection.commit()
+                    self._initialized = True
             with connection:
                 yield connection
         except (OSError, sqlite3.Error) as exc:
